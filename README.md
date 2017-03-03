@@ -61,7 +61,7 @@ Make use of the many generators for code, try `ember help generate` for more det
 
 ### Deploying
 
-Specify what it takes to deploy your app.
+This is just hosted on Github pages `$MESSAGE="my commit message" npm run deploy`
 
 ## Further Reading / Useful Links
 
