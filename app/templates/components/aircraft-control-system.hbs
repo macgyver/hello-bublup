@@ -1,0 +1,6 @@
+{{#if booted}}
+  <h1>Aircraft control system</h1>
+  {{aircraft-queue}}
+{{else}}
+  <button {{action 'boot'}} class="boot" type="button">Boot</button>
+{{/if}}
