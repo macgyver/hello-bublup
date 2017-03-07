@@ -16,15 +16,7 @@
   <button {{action 'enqueue'}} class="enqueue">Enqueue</button>
 </div>
 
-<button {{action 'dequeue'}} class="dequeue" disabled={{empty}}>Dequeue</button>
-
-<ol>
-  {{#each aircrafts as |aircraft|}}
-    <li class="enqueued-aircraft">
-      {{aircraft.size}} {{aircraft.type}} [{{aircraft.number}}]
-    </li>
-  {{/each}}
-</ol>
+<button {{action 'dequeue'}} class="dequeue" disabled={{eq queueLength 0}}>Dequeue</button>
 
 {{#if dequeuedAircraft}}
   Dequeued aircraft:
@@ -32,3 +24,15 @@
     {{dequeuedAircraft.size}} {{dequeuedAircraft.type}} [{{dequeuedAircraft.number}}]
   </span>
 {{/if}}
+
+<ol>
+  {{#each-in aircrafts as |type t|}}
+    {{#each-in t as |size s|}}
+      {{#each s key='number' as |aircraft|}}
+        <li class="enqueued-aircraft">
+          {{aircraft.size}} {{aircraft.type}} [{{aircraft.number}}]
+        </li>
+      {{/each}}
+    {{/each-in}}
+  {{/each-in}}
+</ol>

@@ -23,7 +23,7 @@ export default Ember.Component.extend({
 
   // reset the form for enqueing a new aircraft to default values
   readyNewAircraft() {
-    // this object is modified via two-binding in the template
+    // this object is modified via two-way binding in the template
     this.set('newAircraft', this.get('store').createRecord('aircraft', {
       number: makeNumber(),
       size: AIRCRAFT_SIZES[0],
@@ -36,46 +36,55 @@ export default Ember.Component.extend({
     this.readyNewAircraft();
   },
 
-  // initial (empty) aircraft queue (an `Ember.NativeArray` object)
-  // n.b: this is a singleton! it's ok because we only ever manage a single queue
-  aircrafts: Ember.A(),
+  // aircraft queues for each combination of size/type
+  aircrafts: computed(function() {
+    // n.b. this data structure controls the priority of dequeing:
+    //      - earlier elements have higher priority
+    //      - deeper dimensions have reduced priority
+    let acs = {};
+    AIRCRAFT_TYPES.forEach(t => {
+      acs[t] = {};
+      AIRCRAFT_SIZES.forEach(s => {
+        acs[t][s] = [];
+      });
+    });
+    return acs;
+  }),
 
-  // the dequeue action is enabled if the queue contains any elements
-  empty: computed.empty('aircrafts'),
+  // keep track of queue length to enable/disable "dequeue" button
+  queueLength: 0,
 
   actions: {
     // enqueue the specified aircraft and reset the form to add another
     enqueue() {
-      this.get('aircrafts').pushObject(this.get('newAircraft'));
+      let ac = this.get('newAircraft');
+      let {type, size} = ac.getProperties('type', 'size');
+      this.get(`aircrafts.${type}.${size}`).pushObject(ac);
       this.readyNewAircraft();
+      this.incrementProperty('queueLength');
     },
 
-    // dequeue the next aircraft using logic specified in README
+    // dequeue the next aircraft by traversing dimensions in priority order
+    // until we find a non-empty fifo queue to shift the top off
     dequeue() {
       let dequeuedAircraft;
-      // micro-optimization - skip logic if there's only 1 choice
-      if (this.get('aircrafts.length') === 1) {
-        dequeuedAircraft = this.get('aircrafts').popObject();
-      } else {
-        let dequeueCandidates = this.get('aircrafts');
 
-        // give precedence to any passenger planes
-        let passengerPlanes = dequeueCandidates.filterBy('type', 'Passenger');
-        if (passengerPlanes.length > 0) {
-          dequeueCandidates = passengerPlanes;
+      // n^2 loop ftw - using `for` loops so we can break
+      outermostLoop:
+      for (let t = 0; t < AIRCRAFT_TYPES.length; t++) {
+        let type = AIRCRAFT_TYPES[t];
+        for (let s = 0; s < AIRCRAFT_SIZES.length; s++) {
+          let size = AIRCRAFT_SIZES[s];
+          if (this.get(`aircrafts.${type}.${size}.length`) > 0) {
+            dequeuedAircraft = this.get(`aircrafts.${type}.${size}`).shiftObject();
+            this.decrementProperty('queueLength');
+            break outermostLoop;
+          }
         }
-
-        // next give precedence to any large aircraft
-        let largeAircraft = dequeueCandidates.filterBy('size', 'Large');
-        if (largeAircraft.length > 0) {
-          dequeueCandidates = largeAircraft;
-        }
-
-        // finally pick the earliest remaining object
-        dequeuedAircraft = dequeueCandidates.get('firstObject');
       }
 
-      this.get('aircrafts').removeObject(dequeuedAircraft);
+      // it should be impossible to get here when all queues are empty,
+      // because the "dequeue" button is disabled when that is the case
       this.set('dequeuedAircraft', dequeuedAircraft);
     }
   }
