@@ -2,16 +2,9 @@ import Ember from 'ember';
 const {computed} = Ember;
 import {TYPES as AIRCRAFT_TYPES, SIZES as AIRCRAFT_SIZES} from '../models/aircraft';
 
-// poor man's method of generating unique numbers,
-// purely to assist human readers in identifying airplanes
-const numbers = [];
+// generate random numbers to help identify airplanes
 function makeNumber() {
-  let num;
-  do {
-    num = Math.floor(Math.random() * 999);
-  } while (numbers.indexOf(num) !== -1);
-  numbers.push(num);
-  return num;
+  return window.crypto.getRandomValues(new Uint32Array(1))[0];
 }
 
 export default Ember.Component.extend({
