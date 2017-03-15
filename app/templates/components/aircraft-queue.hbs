@@ -1,0 +1,38 @@
+<div>
+  <input type="number" value={{newAircraft.number}} class="number">
+
+  <select onchange={{action (mut newAircraft.size) value='target.value'}} class="size">
+    {{#each AIRCRAFT_SIZES as |size|}}
+      <option value={{size}} selected={{eq size newAircraft.size}}>{{size}}</option>
+    {{/each}}
+  </select>
+
+  <select onchange={{action (mut newAircraft.type) value="target.value"}} class="type">
+    {{#each AIRCRAFT_TYPES as |type|}}
+      <option value={{type}} selected={{eq type newAircraft.type}}>{{type}}</option>
+    {{/each}}
+  </select>
+
+  <button {{action 'enqueue'}} class="enqueue">Enqueue</button>
+</div>
+
+<button {{action 'dequeue'}} class="dequeue" disabled={{eq queueLength 0}}>Dequeue</button>
+
+{{#if dequeuedAircraft}}
+  Dequeued aircraft:
+  <span class="dequeued-aircraft">
+    {{dequeuedAircraft.size}} {{dequeuedAircraft.type}} [{{dequeuedAircraft.number}}]
+  </span>
+{{/if}}
+
+<ol>
+  {{#each-in aircrafts as |type t|}}
+    {{#each-in t as |size s|}}
+      {{#each s key='number' as |aircraft|}}
+        <li class="enqueued-aircraft">
+          {{aircraft.size}} {{aircraft.type}} [{{aircraft.number}}]
+        </li>
+      {{/each}}
+    {{/each-in}}
+  {{/each-in}}
+</ol>
